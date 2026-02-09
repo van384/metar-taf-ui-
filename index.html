@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AeroBrief — METAR + TAF</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ✅ CSS LINK -->
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+  <div class="bg">
+    <div class="bg__blob bg__blob--1"></div>
+    <div class="bg__blob bg__blob--2"></div>
+    <div class="bg__grid"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand__mark" aria-hidden="true">✈</div>
+      <div class="brand__text">
+        <div class="brand__name">AeroBrief</div>
+        <div class="brand__sub">METAR + TAF Decoder</div>
+      </div>
+    </div>
+
+    <div class="topbar__actions">
+      <button id="unitToggle" class="btn btn--ghost" type="button" aria-pressed="false">
+        <span class="btn__icon">↔</span>
+        <span class="btn__label">Units: ICAO</span>
+      </button>
+
+      <button id="themeToggle" class="btn btn--ghost" type="button" aria-pressed="false">
+        <span class="btn__icon">🌙</span>
+        <span class="btn__label">Dark</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <div class="panel__header">
+        <h1 class="h1">Flight Weather Brief</h1>
+        <p class="muted">Type an ICAO code (example: <b>RKSI</b>, <b>RKPK</b>, <b>RPLL</b>) and get METAR/TAF + decoded.</p>
+      </div>
+
+      <div class="search">
+        <div class="field">
+          <label class="field__label" for="icaoInput">Airport ICAO</label>
+          <div class="field__row">
+            <input id="icaoInput" class="input" type="text" placeholder="RKSI" maxlength="4" autocomplete="off" />
+            <button id="briefBtn" class="btn btn--primary" type="button">
+              <span class="btn__icon">🧾</span>
+              <span class="btn__label">Get Brief</span>
+            </button>
+          </div>
+
+          <div class="field__help">
+            Tip: press <kbd>Enter</kbd>. Try:
+            <button class="chip" data-icao="RKSI">RKSI</button>
+            <button class="chip" data-icao="RKPK">RKPK</button>
+            <button class="chip" data-icao="RPLL">RPLL</button>
+            <button class="chip" data-icao="RJTT">RJTT</button>
+          </div>
+        </div>
+
+        <div class="status">
+          <div id="statusPill" class="pill pill--idle">
+            <span class="pill__dot" aria-hidden="true"></span>
+            <span id="statusText">Ready</span>
+          </div>
+
+          <div class="status__right">
+            <button id="copyAll" class="btn btn--ghost btn--sm" type="button" disabled>
+              <span class="btn__icon">📋</span>
+              <span class="btn__label">Copy Raw</span>
+            </button>
+            <button id="shareLink" class="btn btn--ghost btn--sm" type="button" disabled>
+              <span class="btn__icon">🔗</span>
+              <span class="btn__label">Share</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="summary__left">
+          <div class="badgeRow">
+            <div id="flightCat" class="badge badge--neutral">—</div>
+            <div id="stationBadge" class="badge badge--ghost">Station: —</div>
+            <div id="timeBadge" class="badge badge--ghost">Time: —</div>
+          </div>
+
+          <div class="cardsRow">
+            <div class="miniCard">
+              <div class="miniCard__label">Wind</div>
+              <div id="windVal" class="miniCard__value">—</div>
+            </div>
+            <div class="miniCard">
+              <div class="miniCard__label">Visibility</div>
+              <div id="visVal" class="miniCard__value">—</div>
+            </div>
+            <div class="miniCard">
+              <div class="miniCard__label">Ceiling</div>
+              <div id="ceilVal" class="miniCard__value">—</div>
+            </div>
+            <div class="miniCard">
+              <div class="miniCard__label">QNH</div>
+              <div id="qnhVal" class="miniCard__value">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary__right">
+          <div class="alerts">
+            <div class="alerts__title">Alerts</div>
+            <ul id="alertsList" class="alerts__list">
+              <li class="muted">No data yet.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tabs__bar" role="tablist">
+          <button class="tab is-active" data-tab="metar">METAR</button>
+          <button class="tab" data-tab="taf">TAF</button>
+          <button class="tab" data-tab="decode">Decode</button>
+        </div>
+
+        <div class="tabs__content">
+          <div class="tabPanel is-active" data-panel="metar">
+            <div class="rawCard">
+              <div class="rawCard__title">Raw METAR</div>
+              <pre id="metarRaw" class="raw">—</pre>
+            </div>
+          </div>
+
+          <div class="tabPanel" data-panel="taf">
+            <div class="rawCard">
+              <div class="rawCard__title">Raw TAF</div>
+              <pre id="tafRaw" class="raw">—</pre>
+            </div>
+
+            <div class="tafSegments">
+              <div class="tafSegments__title">Forecast Segments</div>
+              <div id="tafCards" class="tafCards"></div>
+            </div>
+          </div>
+
+          <div class="tabPanel" data-panel="decode">
+            <div class="decodeGrid">
+              <div class="decodeCard">
+                <div class="decodeCard__title">Decoded METAR</div>
+                <dl id="decodedMetar" class="dl"></dl>
+              </div>
+
+              <div class="decodeCard">
+                <div class="decodeCard__title">Decoded TAF (overview)</div>
+                <dl id="decodedTaf" class="dl"></dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="muted">HTML/CSS/JS only. Offline mock data included. Ready for GitHub Pages.</div>
+    </footer>
+  </main>
+
+  <!-- ✅ JS LINK (module) -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
